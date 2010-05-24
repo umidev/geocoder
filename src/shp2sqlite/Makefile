@@ -10,7 +10,7 @@
 # *
 # **********************************************************************
 
-CC=gcc-4.2
+CC=gcc
 CFLAGS=-g -O2  -fPIC -DPIC  -Wall -Wmissing-prototypes
 
 # Filenames with extension as determined by the OS
@@ -18,7 +18,9 @@ SHP2SQLITE=shp2sqlite
 LIBLWGEOM=../liblwgeom/liblwgeom.a
 
 # iconv flags
-ICONV_LDFLAGS=-lc
+ICONV_LDFLAGS=-lc -liconv
+# libiconv is natively supported by lenny
+ICONV_LDFLAGS=-lc 
 
 all: $(SHP2SQLITE)
 
@@ -26,7 +28,7 @@ $(LIBLWGEOM):
 	make -C ../liblwgeom
 
 $(SHP2SQLITE): shpopen.o dbfopen.o getopt.o shp2sqlite.o $(LIBLWGEOM)
-	$(CC) -liconv -I/usr/include $(CFLAGS) $^ $(ICONV_LDFLAGS) -lm -o $@
+	$(CC) -I/usr/include $(CFLAGS) $^ $(ICONV_LDFLAGS) -lm -o $@
 
 
 install: all
