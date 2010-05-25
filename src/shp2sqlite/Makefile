@@ -18,7 +18,9 @@ SHP2SQLITE=shp2sqlite
 LIBLWGEOM=../liblwgeom/liblwgeom.a
 
 # iconv flags
-ICONV_LDFLAGS=-lc
+ICONV_LDFLAGS=-lc -liconv
+# libiconv is natively supported by lenny
+ICONV_LDFLAGS=-lc 
 
 all: $(SHP2SQLITE)
 
