@@ -7,24 +7,25 @@ require 'fastercsv'
 Base = File.dirname(__FILE__)
 
 module Geocoder::US
-  Database_File = (
-    (ARGV[0] and !ARGV[0].empty?) ? ARGV[0] : "/Users/katechapman/shineygeocoder.db")
+  Database_File = ARGV.shift
+  InternationalDatabase_File = ARGV.shift
 end
 
 class TestDatabase < Test::Unit::TestCase
   def get_db
     Geocoder::US::Database.new(Geocoder::US::Database_File, {:debug => true})
-
   end
   
   def get_international_db
-    Geocoder::US::Database.new("/Users/katechapman/Desktop/geonames1.db", {:debug => true})
+    if not Geocoder::US::InternationalDatabase_File.nil?
+       Geocoder::US::Database.new(Geocoder::US::InternationalDatabase_File, {:debug => true})
+    end
   end
   
   def setup
     @db = get_db
     @db_intl = get_international_db
-    assert_not_nil @db_intl
+    #assert_not_nil @db_intl
     assert_not_nil @db
   end
   
