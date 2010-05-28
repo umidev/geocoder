@@ -702,8 +702,8 @@ module Geocoder::US
     #
     # * The :lat and :lon values of each hash store the range-interpolated
     #   address coordinates as latitude and longitude in the WGS84 spheroid.
-    # * The :precision value may be one of :city, :zip, :street, or :range, in
-    #   order of increasing precision.
+    # * The :precision value may be one of :city, :zip, :street, :intersection
+    #   or :range, in order of increasing precision.
     # * The :score value will be a float between 0.0 and 1.0 representing
     #   the approximate "goodness" of the candidate match.
     # * The other values in the hash will represent various structured
