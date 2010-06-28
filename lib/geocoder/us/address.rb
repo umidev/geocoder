@@ -37,6 +37,7 @@ module Geocoder::US
     end
 
     # Removes any characters that aren't strictly part of an address string.
+    # Should consider munging ISO-Latin-1 and UTF-8 special chars to ASCII
     def clean (value)
       value.strip \
            .gsub(/[^a-z0-9 ,'&@\/-]+/io, "") \
@@ -58,16 +59,16 @@ module Geocoder::US
         @number = ""
         if !@street.nil?
           if text[:number].nil?
-             @street.map! { |single_street|
-               single_street.downcase!
-               @number = single_street.scan(Match[:number])[0].to_s
-               single_street.sub! @number, ""
-               single_street.sub! /^\s*,?\s*/o, ""
-              }
-         else
+            @street.map! { |single_street|
+              single_street.downcase!
+              @number = single_street.scan(Match[:number])[0].to_s
+              single_street.sub! @number, ""
+              single_street.sub! /^\s*,?\s*/o, ""
+            }
+          else
             @number = text[:number].to_s 
           end
-         @street = expand_streets(@street)
+          @street = expand_streets(@street)
           street_parts
         end
         @city = []
@@ -78,10 +79,10 @@ module Geocoder::US
           @city.push("")
         end
         if !text[:region].nil?
-         # @state = []
-         @state = text[:region]
+          # @state = []
+          @state = text[:region]
           if @state.length > 2
-           # full_state = @state.strip # special case: New York
+            # full_state = @state.strip # special case: New York
             @state = State[@state]
           end
         elsif !text[:country].nil?
@@ -89,11 +90,11 @@ module Geocoder::US
         elsif !text[:state].nil?
           @state = text[:state]
         end
-
+        
         @zip = text[:postal_code] 
         @plus4 = text[:plus4] 
         if !@zip
-           @zip = @plus4 = ""
+          @zip = @plus4 = ""
         end
       end
     end
