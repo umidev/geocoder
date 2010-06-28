@@ -3,21 +3,61 @@
 require 'rubygems'
 require 'sqlite3'
 require 'text'
+require 'iconv'
+require '../lib/geocoder/us/address'
 
-    @db = SQLite3::Database.new(ARGV[0])
-    @db.create_function("metaphone", 2) do |func, string, len|
-      test = string.to_s.gsub(/\W/o, "")
-      if test =~ /^(\d+)/o
-        mph = $1
-      elsif test =~ /^([wy])$/io
-        mph = $1
-      else
-        mph = Text::Metaphone.metaphone test
-      end
-      func.result = mph[0...len.to_i]
+
+@db = SQLite3::Database.new(ARGV[0])
+@converter = Iconv.new('ASCII//TRANSLIT//IGNORE', 'WINDOWS-1252')
+
+# Be mindful of this function getting out of sync with
+# the one from address.rb
+@db.create_function('metaphone', 2) do |func, string, len|
+  #addr = string
+  addy = addr = string.to_s
+  begin
+    addr_obj = Geocoder::US::Address.new addr #string.to_s
+    parts = addr_obj.street_parts
+    addr = parts.reduce('') do |s1, s2|
+      s1.length >= s2.length ? s1 : s2
     end
-    sql = "update place set city_phone = metaphone(city,5)"
-    
-    @db.execute sql
-    
-    @db.close
+  rescue ArgumentError => error
+    puts error
+  end
+  # Should try to keep non-ASCII out of DB in 1st place
+  addr = @converter.iconv(addr)
+  addr = addr.gsub(/\W/o, '')
+  if addr =~ /^(\d+)/o
+    mph = $1
+  elsif addr =~ /^([wy])$/io
+    mph = $1
+  else
+    mph = Text::Metaphone.metaphone addr
+  end
+  puts "#{mph}\t#{addr}\t#{addy}\tSTREET"
+  func.result = mph[0...len.to_i]
+end
+sql = 'update feature set street_phone = metaphone(street,5)'
+begin
+  @db.execute sql
+rescue
+  print "An error occurred: ",$!, "\n"
+end
+
+@db.create_function('citymetaphone', 2) do |func, string, len|
+  city = @converter.iconv(string.to_s)
+  city = city.gsub(/\W/o, '')
+  if city =~ /^(\d+)/o
+    mph = $1
+  elsif city =~ /^([wy])$/io
+    mph = $1
+  else
+    mph = Text::Metaphone.metaphone city
+  end
+  puts "#{mph}\t#{city}\tCITY"
+  func.result = mph[0...len.to_i]
+end
+sql = 'update place set city_phone = citymetaphone(city,5)'
+
+@db.execute sql
+@db.close
