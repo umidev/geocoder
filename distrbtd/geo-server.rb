@@ -22,7 +22,7 @@ begin
   DRb.start_service(SERVER_URI, Rinda::TupleSpace.new)
   DRb.thread.join
 rescue AWS::S3::ResponseError => error
-  puts error
+  $stderr.print "#{error}"
 end
 else
   # start up a worker instead
@@ -34,22 +34,22 @@ else
   begin
     wrkr_uri = "#{PROT}://#{HNAME}:#{wrkr_port}"
     DRb.start_service(wrkr_uri) #SERVER_URI)
-    puts "Started worker at #{wrkr_uri}"
+    $stderr.print "Started worker at #{wrkr_uri}\n" if @debug
   rescue Errno::EADDRINUSE => error
     wrkr_port += 1
     retry if wrkr_port <= 12150
   end
 
-  puts 'Worker started'
+  $stderr.print 'Worker started\n' if @debug
   svr_uri = GeoS3.value(svr_loc)
   ts = Rinda::TupleSpaceProxy.new(DRbObject.new(nil, svr_uri))
-  puts "Worker joined tuplespace #{ts}"
-  puts "Worker connected to tuplespace #{ts}"
+  $stderr.print "Worker joined tuplespace #{ts}\n" if @debug
+  $stderr.print "Worker connected to tuplespace #{ts}\n" if @debug
   loop do #ts.take([ %r{^[-+/*]$},
-    puts 'Worker looping'
+    $stderr.print 'Worker looping\n' if @debug 
     #tup = ts.take(['address', String, String, String, nil])
     tup = ts.take(['addresses', Array])
-    puts "Worker took tuple #{tup}"
+    $stderr.print "Worker took tuple #{tup}\n" if @debug
     addresses = tup[1]
     results = Array.new
     addresses.each { |address|
@@ -57,7 +57,7 @@ else
       #direction, city, state, zip = tup
       addrstr = address.join(', ')
       addrstr = Iconv.conv('ASCII//TRANSLIT//IGNORE', 'WINDOWS-1252', addrstr)
-      puts "Geocoding address: #{addrstr}"
+      $stderr.print "Geocoding address: #{addrstr}\n" if @debug
       result = @db.geocode(addrstr.strip)
       YAML::dump(result, $stdout)
       results << result
