@@ -6,6 +6,7 @@ require 'levenshtein'
 require 'set'
 require 'pp'
 require 'time'
+require 'iconv'
 
 require 'geocoder/us/address'
 
@@ -709,6 +710,10 @@ module Geocoder::US
     # * The other values in the hash will represent various structured
     #   components of the address and place name.
     def geocode (info_to_geocode, canonical_place=false)
+      info_to_geocode = Iconv.conv('ASCII//TRANSLIT//IGNORE', 'WINDOWS-1252', info_to_geocode)
+      # the above conversion should be done in client,
+      # this is a last ditch effort 
+      # as address could be in UTF-8
       address = Address.new info_to_geocode
       $stderr.print "ADDR: #{address.inspect}\n" if @debug
       return [] if address.city.empty? and address.zip.empty?
