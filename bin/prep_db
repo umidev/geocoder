@@ -1,0 +1,18 @@
+#!/bin/sh
+
+BIN_DIR="$HOME/src/geocoder/bin"
+
+sqlite3 -line "$1" 'DROP INDEX IF EXISTS feature_edge_fid_idx;'
+sqlite3 -line "$1" 'DROP INDEX IF EXISTS feature_street_phone_zip_idx;'
+sqlite3 -line "$1" 'DROP INDEX IF EXISTS place_city_phone_state_idx;'
+sqlite3 -line "$1" 'DROP INDEX IF EXISTS place_zip_priority_idx;'
+sqlite3 -line "$1" 'DROP INDEX IF EXISTS range_tlid_idx;'
+
+# patched bin/rebuild_metaphones
+ruby -rubygems "$BIN_DIR/rebuild_metaphones" "$1"
+
+# build indexes
+ruby -rubygems "$BIN_DIR/build_indexes" "$1"
+
+# cluster tables
+ruby -rubygems "$BIN_DIR/rebuild_cluster" "$1"
