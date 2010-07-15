@@ -1,10 +1,11 @@
-#!/usr/bin/env ruby1.9
+#!/usr/bin/ruby
 
 require 'rubygems'
 require 'geocoder/us'
 
 require 'thrift'
 $:.push('gen-rb')
+
 require 'gcgeocoder_types'
 require 'geocoder_service'
 
@@ -57,7 +58,9 @@ handler = GeocodeHandler.new ARGV[0]
 processor = GeocommonsGeocoderThrift::GeocoderService::Processor.new(handler)
 transport = Thrift::ServerSocket.new(80)
 transportFactory = Thrift::BufferedTransportFactory.new()
-server = Thrift::SimpleServer.new(processor, transport, transportFactory)
+protocolFactory = Thrift::BinaryProtocolFactory.new()
+
+server = Thrift::ThreadPoolServer.new(processor, transport, transportFactory, protocolFactory)
 
 puts "Starting the server..."
 server.serve()
